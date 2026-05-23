@@ -7,7 +7,9 @@ from rich import print
 from constants import (
     EBS_GP3_PRICE_PER_GB,
     ACCOUNT_ID,
-    AWS_REGION
+    AWS_REGION,
+    STOPPED_INSTANCE_THRESHOLD_DAYS
+
 )
 
 # Create EC2 client connected to LocalStack
@@ -138,3 +140,69 @@ with open("report.md", "w") as markdown_file:
     markdown_file.write("\n".join(markdown_lines))
 
 print("[bold green]Markdown summary generated successfully[/bold green]")
+
+print("\n[bold blue]Scanning EC2 Instances...[/bold blue]\n")
+
+instances_response = ec2.describe_instances()
+
+for reservation in instances_response["Reservations"]:
+
+    for instance in reservation["Instances"]:
+
+        instance_id = instance["InstanceId"]
+        instance_state = instance["State"]["Name"]
+
+        print(f"[green]Instance ID:[/green] {instance_id}")
+        print(f"[yellow]State:[/yellow] {instance_state}")
+
+        # Detect stopped instances
+        if instance_state == "stopped":
+
+            finding = {
+                "resource_id": instance_id,
+                "resource_type": "ec2_instance",
+                "reason": "stopped_instance",
+                "age_days": STOPPED_INSTANCE_THRESHOLD_DAYS,
+                "estimated_monthly_cost_usd": 5.00,
+                "tags": {},
+                "suggested_action": "investigate",
+                "safe_to_auto_delete": False
+            }
+
+            findings.append(finding)
+
+            print("[bold red]STOPPED INSTANCE DETECTED[/bold red]")
+
+        print("-" * 50)
+
+        print("\n[bold blue]Scanning Elastic IPs...[/bold blue]\n")
+
+
+addresses_response = ec2.describe_addresses()
+
+for address in addresses_response["Addresses"]:
+
+    allocation_id = address.get("AllocationId", "unknown")
+    association_id = address.get("AssociationId")
+
+    print(f"[green]Elastic IP Allocation ID:[/green] {allocation_id}")
+
+    # Detect unassociated Elastic IPs
+    if association_id is None:
+
+        finding = {
+            "resource_id": allocation_id,
+            "resource_type": "elastic_ip",
+            "reason": "unassociated_elastic_ip",
+            "age_days": 0,
+            "estimated_monthly_cost_usd": 3.60,
+            "tags": {},
+            "suggested_action": "release",
+            "safe_to_auto_delete": False
+        }
+
+        findings.append(finding)
+
+        print("[bold red]UNUSED ELASTIC IP DETECTED[/bold red]")
+
+    print("-" * 50)
