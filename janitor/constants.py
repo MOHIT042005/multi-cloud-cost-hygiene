@@ -6,3 +6,6 @@ REQUIRED_TAGS = [
     "Environment",
     "Owner"
 ]
+
+ACCOUNT_ID = "000000000000"
+AWS_REGION = "us-east-1"
