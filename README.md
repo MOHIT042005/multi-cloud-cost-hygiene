@@ -1,0 +1,1 @@
+Temporarily excluded S3 lifecycle configuration during LocalStack execution due to LocalStack API compatibility limitations, while preserving the intended Terraform configuration structure.
