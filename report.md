@@ -1,8 +1,8 @@
 # Cost Janitor Report
 
-**Scan Timestamp:** 2026-05-23T12:49:31.919334Z
+**Scan Timestamp:** 2026-05-24T09:15:00.138293Z
 
-**Total Orphans Found:** 1
+**Total Orphans Found:** 2
 
 **Estimated Monthly Waste:** $0.8
 
@@ -14,3 +14,10 @@
 - Reason: unattached
 - Estimated Monthly Cost: $0.8
 - Suggested Action: delete
+
+### vol-9fcf8844
+
+- Resource Type: ebs_volume
+- Reason: missing_required_tags
+- Estimated Monthly Cost: $0
+- Suggested Action: add_required_tags

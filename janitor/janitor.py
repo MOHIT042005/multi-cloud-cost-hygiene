@@ -8,9 +8,29 @@ from constants import (
     EBS_GP3_PRICE_PER_GB,
     ACCOUNT_ID,
     AWS_REGION,
-    STOPPED_INSTANCE_THRESHOLD_DAYS
-
+    STOPPED_INSTANCE_THRESHOLD_DAYS,
+    REQUIRED_TAGS
 )
+
+def check_missing_tags(resource_tags):
+
+    missing_tags = []
+
+    # Convert AWS tag structure into simple dictionary
+    tags_dict = {}
+
+    if resource_tags:
+
+        for tag in resource_tags:
+            tags_dict[tag["Key"]] = tag["Value"]
+
+    # Check required tags
+    for required_tag in REQUIRED_TAGS:
+
+        if required_tag not in tags_dict:
+            missing_tags.append(required_tag)
+
+    return missing_tags
 
 # Create EC2 client connected to LocalStack
 ec2 = boto3.client(
@@ -35,6 +55,8 @@ for volume in volumes_response["Volumes"]:
     volume_id = volume["VolumeId"]
     volume_state = volume["State"]
     volume_size = volume["Size"]
+    volume_tags = volume.get("Tags", [])
+    missing_tags = check_missing_tags(volume_tags)
 
     print(f"[green]Volume ID:[/green] {volume_id}")
     print(f"[yellow]State:[/yellow] {volume_state}")
@@ -64,6 +86,29 @@ for volume in volumes_response["Volumes"]:
         print("[bold red]ORPHAN DETECTED[/bold red]")
 
     print("-" * 50)
+
+    # Detect missing required tags
+if missing_tags:
+
+    finding = {
+        "resource_id": volume_id,
+        "resource_type": "ebs_volume",
+        "reason": "missing_required_tags",
+        "age_days": 0,
+        "estimated_monthly_cost_usd": 0,
+        "tags": {
+            "missing": missing_tags
+        },
+        "suggested_action": "add_required_tags",
+        "safe_to_auto_delete": False
+    }
+
+    findings.append(finding)
+
+    print(
+        f"[bold red]MISSING TAGS DETECTED:[/bold red] "
+        f"{missing_tags}"
+    )
 
 # Build final report structure
 report = {
