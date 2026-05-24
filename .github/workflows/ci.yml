@@ -1,0 +1,72 @@
+name: NimbusKart Cost Hygiene Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - feature/cost-janitor
+
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  cost-hygiene-check:
+
+    runs-on: ubuntu-latest
+
+    services:
+      localstack:
+        image: localstack/localstack:3.0
+        ports:
+          - 4566:4566
+
+    steps:
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.8.5
+
+      - name: Install Python Dependencies
+        run: |
+          pip install -r janitor/requirements.txt
+        
+                - name: Wait for LocalStack
+                    run: sleep 15
+
+      - name: Terraform Init
+        working-directory: terraform
+        run: terraform init
+
+      - name: Terraform Validate
+        working-directory: terraform
+        run: terraform validate
+
+      - name: Terraform Apply
+        working-directory: terraform
+        run: terraform apply -auto-approve
+
+      - name: Run Cost Janitor
+        run: |
+          python janitor/janitor.py
+
+      - name: Upload JSON Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: report-json
+          path: report.json
+
+      - name: Upload Markdown Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: report-markdown
+          path: report.md
