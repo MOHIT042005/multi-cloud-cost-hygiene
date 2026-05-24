@@ -12,7 +12,6 @@ on:
 
 jobs:
   cost-hygiene-check:
-
     runs-on: ubuntu-latest
 
     services:
@@ -22,7 +21,6 @@ jobs:
           - 4566:4566
 
     steps:
-
       - name: Checkout Repository
         uses: actions/checkout@v4
 
@@ -37,11 +35,10 @@ jobs:
           terraform_version: 1.8.5
 
       - name: Install Python Dependencies
-        run: |
-          pip install -r janitor/requirements.txt
-        
-                - name: Wait for LocalStack
-                    run: sleep 15
+        run: pip install -r janitor/requirements.txt
+
+      - name: Wait for LocalStack
+        run: sleep 15
 
       - name: Terraform Init
         working-directory: terraform
@@ -56,8 +53,7 @@ jobs:
         run: terraform apply -auto-approve
 
       - name: Run Cost Janitor
-        run: |
-          python janitor/janitor.py
+        run: python janitor/janitor.py
 
       - name: Upload JSON Report
         uses: actions/upload-artifact@v4
