@@ -1,6 +1,8 @@
 import json
 from datetime import datetime
 
+import argparse
+
 import boto3
 from rich import print
 
@@ -11,6 +13,21 @@ from constants import (
     STOPPED_INSTANCE_THRESHOLD_DAYS,
     REQUIRED_TAGS
 )
+
+def is_protected(resource_tags):
+
+    if not resource_tags:
+        return False
+
+    for tag in resource_tags:
+
+        if (
+            tag["Key"] == "Protected"
+            and tag["Value"].lower() == "true"
+        ):
+            return True
+
+    return False
 
 def check_missing_tags(resource_tags):
 
@@ -32,6 +49,28 @@ def check_missing_tags(resource_tags):
 
     return missing_tags
 
+# Parse command-line arguments
+parser = argparse.ArgumentParser(
+    description="NimbusKart Cost Janitor"
+)
+
+parser.add_argument(
+    "--delete",
+    action="store_true",
+    help="Delete orphaned resources"
+)
+
+parser.add_argument(
+    "--dry-run",
+    action="store_true",
+    help="Run scan without deleting resources"
+)
+
+args = parser.parse_args()
+
+# Default mode is dry-run
+delete_mode = args.delete
+
 # Create EC2 client connected to LocalStack
 ec2 = boto3.client(
     "ec2",
@@ -43,6 +82,11 @@ ec2 = boto3.client(
 
 # Store orphan findings
 findings = []
+
+if delete_mode:
+    print("[bold red]RUNNING IN DELETE MODE[/bold red]")
+else:
+    print("[bold yellow]RUNNING IN DRY-RUN MODE[/bold yellow]")
 
 print("\n[bold blue]Scanning EBS Volumes...[/bold blue]\n")
 
@@ -84,6 +128,27 @@ for volume in volumes_response["Volumes"]:
         findings.append(finding)
 
         print("[bold red]ORPHAN DETECTED[/bold red]")
+
+        protected = is_protected(volume_tags)
+
+        if delete_mode:
+
+            if protected:
+
+                print(
+                    "[bold yellow]Skipping protected volume[/bold yellow]"
+                )
+
+            else:
+
+                print(
+                    f"[bold red]Deleting orphaned volume:[/bold red] "
+                    f"{volume_id}"
+                )
+
+                ec2.delete_volume(
+                    VolumeId=volume_id
+                )
 
     print("-" * 50)
 

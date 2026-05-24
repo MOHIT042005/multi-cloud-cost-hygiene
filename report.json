@@ -1,36 +1,20 @@
 {
-    "scan_timestamp": "2026-05-24T09:15:00.138293Z",
+    "scan_timestamp": "2026-05-24T09:46:36.974656Z",
     "account_id": "000000000000",
     "region": "us-east-1",
     "summary": {
-        "total_orphans": 2,
+        "total_orphans": 1,
         "estimated_monthly_waste_usd": 0.8
     },
     "findings": [
         {
-            "resource_id": "vol-054eedef",
+            "resource_id": "vol-bc5abea1",
             "resource_type": "ebs_volume",
             "reason": "unattached",
             "age_days": 0,
             "estimated_monthly_cost_usd": 0.8,
             "tags": {},
             "suggested_action": "delete",
-            "safe_to_auto_delete": false
-        },
-        {
-            "resource_id": "vol-9fcf8844",
-            "resource_type": "ebs_volume",
-            "reason": "missing_required_tags",
-            "age_days": 0,
-            "estimated_monthly_cost_usd": 0,
-            "tags": {
-                "missing": [
-                    "Project",
-                    "Environment",
-                    "Owner"
-                ]
-            },
-            "suggested_action": "add_required_tags",
             "safe_to_auto_delete": false
         }
     ]
