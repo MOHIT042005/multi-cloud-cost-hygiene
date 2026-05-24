@@ -1,21 +1,21 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+
 # Terraform
 .terraform/
 *.tfstate
 *.tfstate.backup
 
-# Python
-__pycache__/
-venv/
-
-# Environment files
-.env
-
-# OS
+# OS files
 .DS_Store
 Thumbs.db
 
-# VS Code
-.vscode/
+# Reports
+report.json
+report.md
 
-# Logs
-*.log
+# IDE
+.vscode/
+.idea/
