@@ -156,5 +156,6 @@ resource "aws_ebs_volume" "orphan_volume" {
     Environment = var.environment
     Owner       = var.owner
     ManagedBy   = "terraform"
+    Protected = "true"
   }
 }
